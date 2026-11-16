@@ -1,0 +1,35 @@
+#!/bin/bash
+set -eu
+if [ -n "${BL_DEBUG_DIR:-}" ]; then
+  mkdir -p "$BL_DEBUG_DIR"
+  exec >>"$BL_DEBUG_DIR/steam-fedora.log" 2>&1
+fi
+record_exit() {
+  status=$?
+  if [ "$status" -ne 0 ] && [ -n "${BL_DEBUG_DIR:-}" ]; then
+    printf 'exit=%s\n' "$status" >"$BL_DEBUG_DIR/steam-failed"
+  fi
+}
+trap record_exit EXIT
+export BL_DESKTOP=1 BL_INSIDE=1 BL_STEAM_UI=desktop
+export DROIDDECK_HOST_PRELOAD=/etc/droiddeck/fedora-preload
+export LD_PRELOAD=/usr/local/lib/libblsession.so:/usr/local/lib/libfakeinput.so:libXrandr.so.2
+export GALLIUM_DRIVER=llvmpipe LIBGL_ALWAYS_SOFTWARE=1
+unset MESA_LOADER_DRIVER_OVERRIDE LIBGL_KOPPER_DRI2 DROIDDECK_LINK_RENAME
+steam_root=${XDG_DATA_HOME:-$HOME/.local/share}/Steam
+mkdir -p "$HOME/.steam"
+for name in root steam; do ln -sfn "$steam_root" "$HOME/.steam/$name"; done
+for name in bin64 binarm64; do ln -sfn "$steam_root/steamrtarm64" "$HOME/.steam/$name"; done
+ln -sfn "$steam_root/linux64" "$HOME/.steam/sdk64"
+ln -sfn "$steam_root/linuxarm64" "$HOME/.steam/sdkarm64"
+# NSS loads this module by name; Fedora installs the same trust provider under pkcs11.
+if [ ! -e /usr/lib64/libnssckbi.so ] && [ -r /usr/lib64/pkcs11/p11-kit-trust.so ]; then
+  ln -sfn pkcs11/p11-kit-trust.so /usr/lib64/libnssckbi.so
+fi
+echo "== Steam starting inside Fedora on ${DISPLAY:-unset}; desktop stays open"
+status=0
+/usr/local/bin/droiddeck-steam-launch desktop "${1:-}" || status=$?
+if [ "$status" -ne 0 ] && [ -n "${BL_DEBUG_DIR:-}" ]; then
+  printf 'exit=%s\n' "$status" >"$BL_DEBUG_DIR/steam-failed"
+fi
+exit "$status"

@@ -1,0 +1,2 @@
+#!/bin/sh
+exec env -u WAYLAND_DISPLAY XDG_SESSION_TYPE=x11 CHROME_DESKTOP=droiddeck-brave.desktop /opt/brave.com/brave/brave-browser --no-sandbox --ozone-platform=x11 --disable-dev-shm-usage --no-first-run "$@"

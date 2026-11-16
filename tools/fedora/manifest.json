@@ -1,0 +1,18 @@
+{
+  "distribution": "Fedora",
+  "version": "43",
+  "architecture": "arm64",
+  "desktop": "Xfce 4.20",
+  "status": "preview",
+  "imageManifestDigest": "sha256:f01112b9a1f1d0504ad962d9adfa401425033f8ab067e0a821904ebdde5b8ca5",
+  "asset": "bundled/fedora-xfce-arm64.tgz",
+  "sha256": "6697d531d24394b6cac448b0d1dcd833826219fe7b6b18199dfc49257e2a2175",
+  "bytes": 317959100,
+  "expandedBytes": 962411591,
+  "regularFiles": 17501,
+  "packageList": "packages.lock.txt",
+  "built": "2026-11-16",
+  "arm64EmulatedDesktopBootTested": true,
+  "androidDeviceTested": false,
+  "steamLoginAndGamesValidated": false
+}

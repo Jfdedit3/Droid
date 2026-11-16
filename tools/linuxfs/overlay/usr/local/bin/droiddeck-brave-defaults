@@ -1,0 +1,49 @@
+#!/usr/bin/python3
+import configparser
+import os
+import pathlib
+
+DESKTOP_ID = "droiddeck-brave.desktop"
+MIMES = ("text/html", "application/xhtml+xml", "x-scheme-handler/http", "x-scheme-handler/https")
+
+
+def load(path):
+    config = configparser.RawConfigParser(strict=False)
+    config.optionxform = str
+    config.read(path, encoding="utf-8")
+    return config
+
+
+def save(path, config):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + ".droiddeck-tmp")
+    with temporary.open("w", encoding="utf-8") as stream:
+        config.write(stream, space_around_delimiters=False)
+    temporary.replace(path)
+
+
+def configure(home, browser=pathlib.Path("/opt/brave.com/brave/brave")):
+    config_dir = pathlib.Path(os.environ.get("XDG_CONFIG_HOME") or home / ".config")
+    marker = config_dir / "droiddeck-brave-default-v1"
+    if not browser.is_file() or marker.exists():
+        return False
+    for name in ("mimeapps.list", "kde-mimeapps.list"):
+        mime_file = config_dir / name
+        mime = load(mime_file)
+        if not mime.has_section("Default Applications"):
+            mime.add_section("Default Applications")
+        for kind in MIMES:
+            mime.set("Default Applications", kind, DESKTOP_ID)
+        save(mime_file, mime)
+    kde_file = config_dir / "kdeglobals"
+    kde = load(kde_file)
+    if not kde.has_section("General"):
+        kde.add_section("General")
+    kde.set("General", "BrowserApplication", DESKTOP_ID)
+    save(kde_file, kde)
+    marker.write_text("Brave is the initial browser; later choices are preserved.\n", encoding="utf-8")
+    return True
+
+
+if __name__ == "__main__":
+    configure(pathlib.Path.home())

@@ -1,0 +1,29 @@
+{
+  "asset": "bundled/fedora-gaming-arm64.tgz",
+  "sha256": "c5cc15dfc3a630a8f68ba61e60e8e93d14a80eb682e53986e8be52717af19e17",
+  "bytes": 2114976,
+  "expandedBytes": 6657423,
+  "packagesAdded": 11,
+  "basePackagesUpgraded": 0,
+  "steamAndGamesOnPhoneAfterFixValidated": false,
+  "cxxRuntime": {
+    "version": "16-20260322-1ubuntu1",
+    "distribution": "Ubuntu 26.04",
+    "debSha256": "4ec527bc695f4221b97aee9ac0c2f4f068b514a810db5d18465a8636dc5b2948",
+    "minGlibc": "2.38",
+    "requiredAbi": "GLIBCXX_3.4.35",
+    "existingFedoraRuntimeFilePreserved": true
+  },
+  "arm64GamescopeVersionTestPassed": true,
+  "realArchiveInstalledByApplicationCode": true,
+  "rootfsArchiveTestsPassed": 7,
+  "gamingPayloadTestsPassed": 8,
+  "reaper": {
+    "path": "usr/bin/gamescopereaper",
+    "package": "gamescope-3.16.23-1.fc43.aarch64",
+    "rpmSha256": "40f4df4376bd341a62e13c819e1e2d6fcd563f202ead43baefab06ac96c5d06d",
+    "rpmGpgSignatureVerified": true,
+    "nativeArm64ChildLaunchTestPassed": true,
+    "nativeArm64StopTestPassed": true
+  }
+}

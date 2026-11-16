@@ -1,0 +1,62 @@
+package com.droiddeck.launcher.gpu
+
+import android.content.Context
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28], manifest = Config.NONE)
+class FrameGenTest {
+    private lateinit var context: Context
+
+    @Before fun setUp() {
+        context = RuntimeEnvironment.getApplication()
+        context.getSharedPreferences("frame_gen", Context.MODE_PRIVATE).edit().clear().commit()
+    }
+
+    @Test fun offUntilPicked() {
+        assertEquals(FrameGen.Mode.OFF, FrameGen.mode(context))
+    }
+
+    @Test fun adaptiveTargetIsKept() {
+        FrameGen.set(context, FrameGen.Mode(FrameGen.ENGINE_LSFG, target = 90))
+        assertEquals(FrameGen.Mode(FrameGen.ENGINE_LSFG, target = 90), FrameGen.mode(context))
+    }
+
+    @Test fun fixedMultiplierReplacesATarget() {
+        FrameGen.set(context, FrameGen.Mode(FrameGen.ENGINE_LSFG, target = 120))
+        FrameGen.set(context, FrameGen.Mode(FrameGen.ENGINE_LSFG, 3))
+        assertEquals(FrameGen.Mode(FrameGen.ENGINE_LSFG, 3), FrameGen.mode(context))
+    }
+
+    @Test fun onlyLsfgIsAdaptive() {
+        context.getSharedPreferences("frame_gen", Context.MODE_PRIVATE).edit()
+            .putString("engine", FrameGen.ENGINE_DDFG).putInt("multiplier", 4).putInt("target", 60).commit()
+        assertEquals(FrameGen.Mode(FrameGen.ENGINE_DDFG, 4), FrameGen.mode(context))
+    }
+
+    @Test fun aSavedWinFgChoiceBecomesDdFg() {
+        context.getSharedPreferences("frame_gen", Context.MODE_PRIVATE).edit()
+            .putString("engine", "winfg").putInt("multiplier", 2).commit()
+        assertEquals(FrameGen.Mode(FrameGen.ENGINE_DDFG, 2), FrameGen.mode(context))
+    }
+    @Test fun lightModeNeverKeepsAnExpensiveMultiplierOrTarget() {
+        FrameGen.set(context, FrameGen.Mode(FrameGen.ENGINE_LIGHT, multiplier = 4, target = 120))
+        assertEquals(FrameGen.Mode(FrameGen.ENGINE_LIGHT), FrameGen.mode(context))
+        val saved = context.getSharedPreferences("frame_gen", Context.MODE_PRIVATE)
+        assertEquals(2, saved.getInt("multiplier", 0))
+        assertEquals(0, saved.getInt("target", -1))
+    }
+
+    @Test fun legacyLightPreferencesAreClampedWhenRead() {
+        context.getSharedPreferences("frame_gen", Context.MODE_PRIVATE).edit()
+            .putString("engine", FrameGen.ENGINE_LIGHT).putInt("multiplier", 4).putInt("target", 120).commit()
+        assertEquals(FrameGen.Mode(FrameGen.ENGINE_LIGHT), FrameGen.mode(context))
+    }
+
+}

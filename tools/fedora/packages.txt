@@ -1,0 +1,12 @@
+filesystem setup fedora-release glibc-minimal-langpack glibc-langpack-en glibc-langpack-fr
+bash coreutils sed grep gawk file hostname psmisc findutils which procps-ng util-linux
+xfce4-session xfwm4 xfdesktop xfce4-panel xfce4-settings Thunar xfce4-terminal exo
+xorg-x11-server-Xwayland xdpyinfo xrandr xdg-utils wmctrl xdotool dejavu-sans-fonts
+ca-certificates dbus-daemon dbus-x11 python3-dbus python3-gobject-base
+gtk2 gtk3 nss nspr alsa-lib libnotify libsecret libXScrnSaver libXtst libXrandr
+libXcomposite libXdamage libXfixes libxkbcommon libxkbcommon-x11 libdrm libxshmfence at-spi2-atk
+mesa-libgbm mesa-libGL mesa-libEGL mesa-dri-drivers mesa-vulkan-drivers vulkan-loader
+libglvnd-glx libglvnd-egl libglvnd-gles pipewire-libs pulseaudio-libs libcurl
+NetworkManager-libnm openal-soft libva libvdpau libatomic ibus-libs
+libavcodec-free libavutil-free SDL2 bzip2-libs
+curl unzip tar xz zstd dnf5 pciutils

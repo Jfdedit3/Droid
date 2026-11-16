@@ -1,0 +1,15 @@
+{
+  "distribution": "Debian",
+  "version": "13 (trixie)",
+  "architecture": "arm64",
+  "desktop": "Xfce 4.20",
+  "imageManifestDigest": "sha256:a72b4433de1cf7d6bae0c4cee74d0547f58601a643b3375f070c51600d63b6b2",
+  "asset": "bundled/debian-xfce-arm64.tgz",
+  "sha256": "24703f252a04a9b458cf10b4fcbba990886eae6d223c3037c48b88acc624e168",
+  "bytes": 183357732,
+  "expandedBytes": 583936409,
+  "packageList": "packages.lock.txt",
+  "built": "2026-11-16",
+  "arm64EmulatedDesktopBootTested": true,
+  "androidDeviceTested": false
+}

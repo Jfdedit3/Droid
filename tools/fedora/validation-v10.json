@@ -1,0 +1,18 @@
+{
+  "version": "0.7.1-xclipse920.10",
+  "phoneReportReviewed": true,
+  "observedErrors": [
+    "ZINK vkEnumeratePhysicalDevices failed",
+    "VK_ERROR_DEVICE_LOST",
+    "ICE authority locking failed",
+    "libnssckbi.so not found"
+  ],
+  "fedoraTests": 20,
+  "gpuLauncherTests": 10,
+  "gameEnvironmentTests": 157,
+  "nativeIceauthDeniedLinksRegression": true,
+  "nativeIceauthExistingLockPreserved": true,
+  "steamOnPhoneAfterFixValidated": false,
+  "startupSpeedMeasuredAfterFix": false,
+  "xfceUsesAbsoluteIceauthPathVerified": true
+}

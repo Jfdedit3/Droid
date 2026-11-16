@@ -1,0 +1,92 @@
+#!/bin/sh
+set -eu
+if [ -n "${BL_DEBUG_DIR:-}" ]; then
+  mkdir -p "$BL_DEBUG_DIR"
+  exec >>"$BL_DEBUG_DIR/debian-xfce.log" 2>&1
+fi
+echo "== Debian/Xfce starting $(date -u) uid=$(id -u) display=${WAYLAND_DISPLAY:-unset} runtime=${XDG_RUNTIME_DIR:-unset}"
+export XDG_CURRENT_DESKTOP=XFCE XDG_SESSION_DESKTOP=xfce DESKTOP_SESSION=xfce
+export XDG_SESSION_TYPE=x11 DISPLAY=:1 SHELL=/bin/bash
+export GDK_BACKEND=x11 QT_QPA_PLATFORM=xcb SDL_VIDEODRIVER=x11
+export LIBGL_ALWAYS_SOFTWARE=1 XWAYLAND_NO_GLAMOR=1
+export XDG_CONFIG_DIRS=/etc/xdg XDG_DATA_DIRS=/usr/local/share:/usr/share
+if [ ! -s /etc/machine-id ]; then dbus-uuidgen > /etc/machine-id; fi
+mkdir -p /var/lib/dbus
+ln -sf /etc/machine-id /var/lib/dbus/machine-id
+mkdir -p /tmp/.X11-unix /tmp/.ICE-unix "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml"
+chmod 1777 /tmp/.X11-unix /tmp/.ICE-unix
+rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
+if [ ! -e "$HOME/.config/droiddeck-xfce-defaults-v1" ]; then
+  cat >"$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml" <<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfwm4" version="1.0"><property name="general" type="empty"><property name="use_compositing" type="bool" value="false"/><property name="workspace_count" type="int" value="1"/></property></channel>
+XML
+  cat >"$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml" <<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="xfce4-session" version="1.0"><property name="general" type="empty"><property name="SaveOnExit" type="bool" value="false"/></property></channel>
+XML
+  [ ! -f /etc/xdg/xfce4/panel/default.xml ] || cp /etc/xdg/xfce4/panel/default.xml "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml"
+  cat >"$HOME/.config/mimeapps.list" <<'MIME'
+[Default Applications]
+text/html=droiddeck-brave.desktop;
+x-scheme-handler/http=droiddeck-brave.desktop;
+x-scheme-handler/https=droiddeck-brave.desktop;
+MIME
+  printf '[Desktop Entry]\nWebBrowser=custom-WebBrowser\n' >"$HOME/.config/xfce4/helpers.rc"
+  mkdir -p "$HOME/.local/share/xfce4/helpers"
+  cat >"$HOME/.local/share/xfce4/helpers/custom-WebBrowser.desktop" <<'HELPER'
+[Desktop Entry]
+Version=1.0
+Type=X-XFCE-Helper
+Name=Brave
+X-XFCE-Category=WebBrowser
+X-XFCE-Commands=/usr/local/bin/droiddeck-brave-browser
+X-XFCE-CommandsWithParameter=/usr/local/bin/droiddeck-brave-browser "%s"
+HELPER
+  mkdir -p "$HOME/.config/gtk-3.0"
+  printf 'file:///mnt/shared Android\n' >"$HOME/.config/gtk-3.0/bookmarks"
+  touch "$HOME/.config/droiddeck-xfce-defaults-v1"
+fi
+server= session=
+cleanup() {
+  [ -z "$session" ] || kill "$session" 2>/dev/null || true
+  [ -z "$server" ] || kill "$server" 2>/dev/null || true
+  [ -z "$session" ] || wait "$session" 2>/dev/null || true
+  [ -z "$server" ] || wait "$server" 2>/dev/null || true
+}
+trap cleanup EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+wayland_socket=${XDG_RUNTIME_DIR:-/run/droiddeck}/${WAYLAND_DISPLAY:-wayland-0}
+n=0
+until [ -S "$wayland_socket" ]; do
+  n=$((n + 1))
+  [ "$n" -lt 150 ] || { echo "Debian: Wayland socket missing: $wayland_socket"; ls -la "${XDG_RUNTIME_DIR:-/run/droiddeck}"; exit 70; }
+  sleep 0.1
+done
+xlog=${BL_DEBUG_DIR:-/tmp}/xwayland-debian.log
+echo "== Starting Xwayland, stderr: $xlog"
+env LD_PRELOAD=/usr/local/lib/droiddeck-xwayland.so DROIDDECK_LINK_RENAME=1 \
+  Xwayland :1 -ac -nolisten tcp -noreset -geometry "${BL_WIDTH:-1280}x${BL_HEIGHT:-720}" -fullscreen -shm >"$xlog" 2>&1 &
+server=$!
+n=0
+until xdpyinfo -display :1 >/dev/null 2>&1; do
+  if ! kill -0 "$server" 2>/dev/null; then
+    xstatus=0
+    wait "$server" || xstatus=$?
+    echo "Debian: Xwayland failed with status $xstatus"
+    tail -n 80 "$xlog"
+    exit 70
+  fi
+  n=$((n + 1))
+  [ "$n" -lt 300 ] || { echo 'Debian: X11 display timeout'; xdpyinfo -display :1 || true; tail -n 80 "$xlog"; exit 70; }
+  sleep 0.1
+done
+unset WAYLAND_DISPLAY
+python3 /usr/local/bin/droiddeck-debian-tools --setup || echo 'Debian: desktop customization will retry next launch'
+dbus-run-session -- xfce4-session &
+session=$!
+status=0
+wait "$session" || status=$?
+echo "== Debian/Xfce ended with status $status"
+exit "$status"

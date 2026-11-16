@@ -1,0 +1,46 @@
+{
+  "architecture": "aarch64",
+  "testHost": "x86_64, PRoot 5.4.0, QEMU 10.1.5, Weston 14 headless/Pixman",
+  "xwayland": "24.1.14",
+  "xfce": "4.20",
+  "desktop": {
+    "started": true,
+    "uid": 1000,
+    "resolution": [
+      1280,
+      720
+    ],
+    "pngDecodedWithoutRoot": true,
+    "compositing": false,
+    "polkitAgentDisabled": true
+  },
+  "hardlinkRestriction": {
+    "withoutShim": "EPERM /tmp/.X170-lock",
+    "withOfficialShim": "X11 ready, 1280x720"
+  },
+  "armSandbox": {
+    "separateArmLibraries": true,
+    "explicitArmLoaderAndEnv": "aarch64"
+  },
+  "steam": {
+    "sameDesktopRouting": true,
+    "bootstrapStarted": true,
+    "loginAndGamesValidated": false,
+    "deviceValidated": false,
+    "emulationBlocker": "pthreads futex robust_list is corrupt",
+    "syscallChecks": {
+      "get_robust_list": "ENOSYS",
+      "process_vm_readv(self)": "ENOSYS"
+    },
+    "status": "preview; requires S22+ validation",
+    "arm64ElfDependencyFilesChecked": 243,
+    "missingElfDependencies": []
+  },
+  "phonePerformanceMeasured": false,
+  "testCertificatesRemoved": true,
+  "appJavaExtractorTestedWithRealArchive": true,
+  "pythonDesktopTestsPassed": 17,
+  "pythonBwrapTestsPassed": 9,
+  "failureLogTestsPassed": 9,
+  "gradleUnitTestsPassed": 24
+}

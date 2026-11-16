@@ -1,0 +1,37 @@
+tools/linuxfs/** text=auto eol=lf
+tools/mangoapp/** text=auto eol=lf
+tools/comet/LICENSE whitespace=-blank-at-eof
+tools/comet/droiddeck.patch whitespace=-blank-at-eol,-blank-at-eof
+tools/gamescope/patches/0900-enhanced-frame-diagnostics.patch whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
+
+tools/linuxfs/overlay/** text eol=lf
+tools/linuxfs/desktop/** text eol=lf
+tools/mangoapp/mangoapp text eol=lf
+app/src/main/assets/desktop-removal/*.json text eol=lf
+app/src/main/assets/desktop-removal/*.txt text eol=lf
+*.pdf binary
+
+# Preserve binary assets when checking out the complete project.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.mp4 binary
+*.webm binary
+*.wav binary
+*.ogg binary
+*.so binary
+*.aar binary
+*.jar binary
+*.p12 binary
+*.tgz binary
+*.zip binary
+*.gz binary
+*.xz binary
+*.zst binary

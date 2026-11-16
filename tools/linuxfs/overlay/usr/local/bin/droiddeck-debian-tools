@@ -1,0 +1,165 @@
+#!/usr/bin/python3
+import ctypes
+import os
+from pathlib import Path
+import sys
+import xml.etree.ElementTree as ET
+
+ASSETS = Path('/usr/local/share/droiddeck')
+APPLICATIONS = Path('/usr/local/share/applications')
+MARKER = 'droiddeck-xfce-integration-v1'
+
+
+def atomic_write(path, text):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + '.tmp-' + str(os.getpid()))
+    temporary.write_text(text, encoding='utf-8')
+    os.replace(temporary, path)
+
+
+def monitors():
+    names = {'0', 'XWAYLAND0'}
+    display = pointer = None
+    try:
+        class Monitor(ctypes.Structure):
+            _fields_ = [('name', ctypes.c_ulong), ('primary', ctypes.c_int), ('automatic', ctypes.c_int),
+                        ('noutput', ctypes.c_int), ('x', ctypes.c_int), ('y', ctypes.c_int),
+                        ('width', ctypes.c_int), ('height', ctypes.c_int), ('mwidth', ctypes.c_int),
+                        ('mheight', ctypes.c_int), ('outputs', ctypes.POINTER(ctypes.c_ulong))]
+        x = ctypes.CDLL('libX11.so.6')
+        randr = ctypes.CDLL('libXrandr.so.2')
+        x.XOpenDisplay.argtypes = [ctypes.c_char_p]
+        x.XOpenDisplay.restype = ctypes.c_void_p
+        x.XDefaultRootWindow.argtypes = [ctypes.c_void_p]
+        x.XDefaultRootWindow.restype = ctypes.c_ulong
+        x.XGetAtomName.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+        x.XGetAtomName.restype = ctypes.c_void_p
+        x.XFree.argtypes = [ctypes.c_void_p]
+        x.XCloseDisplay.argtypes = [ctypes.c_void_p]
+        randr.XRRGetMonitors.argtypes = [ctypes.c_void_p, ctypes.c_ulong, ctypes.c_int, ctypes.POINTER(ctypes.c_int)]
+        randr.XRRGetMonitors.restype = ctypes.POINTER(Monitor)
+        randr.XRRFreeMonitors.argtypes = [ctypes.POINTER(Monitor)]
+        display = x.XOpenDisplay(None)
+        if display:
+            count = ctypes.c_int()
+            pointer = randr.XRRGetMonitors(display, x.XDefaultRootWindow(display), 1, ctypes.byref(count))
+            for i in range(min(count.value, 16)):
+                atom = x.XGetAtomName(display, pointer[i].name)
+                if atom:
+                    name = ctypes.string_at(atom).decode('utf-8', errors='replace')
+                    x.XFree(atom)
+                    if name and '/' not in name:
+                        names.add(name)
+    except (OSError, AttributeError):
+        pass
+    finally:
+        if pointer:
+            randr.XRRFreeMonitors(pointer)
+        if display:
+            x.XCloseDisplay(display)
+    return names
+
+
+def prop(parent, name, kind='empty', value=None):
+    element = next((p for p in parent.findall('property') if p.get('name') == name), None)
+    if element is None:
+        element = ET.SubElement(parent, 'property', name=name)
+    element.set('type', kind)
+    if value is not None:
+        element.set('value', str(value))
+    return element
+
+
+def desktop_directory(home):
+    file = home / '.config/user-dirs.dirs'
+    if file.is_file():
+        for line in file.read_text().splitlines():
+            if line.startswith('XDG_DESKTOP_DIR="') and line.endswith('"'):
+                value = line[len('XDG_DESKTOP_DIR="'):-1].replace('${HOME}', str(home)).replace('$HOME', str(home))
+                path = Path(value)
+                if path.is_absolute() and path != home:
+                    return path
+    return home / 'Desktop'
+
+
+def set_background(home, wallpaper, outputs):
+    path = home / '.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml'
+    channel = ET.parse(path).getroot() if path.exists() else ET.Element('channel', name='xfce4-desktop', version='1.0')
+    screen = prop(prop(channel, 'backdrop'), 'screen0')
+    names = {'monitor' + n for n in outputs}
+    names.update(p.get('name') for p in screen.findall('property') if p.get('name', '').startswith('monitor'))
+    for name in sorted(names):
+        monitor = prop(screen, name)
+        spaces = [p for p in monitor.findall('property') if p.get('name', '').startswith('workspace')]
+        if not spaces:
+            spaces = [prop(monitor, 'workspace0')]
+        for space in spaces:
+            image = next((p.get('value', '') for p in space.findall('property') if p.get('name') == 'last-image'), '')
+            style = next((p.get('value') for p in space.findall('property') if p.get('name') == 'image-style'), None)
+            stock = image.startswith('/usr/share/backgrounds/xfce/') or image.startswith('/usr/share/xfce4/backdrops/')
+            if image and not stock and Path(image).is_file() and style != '0':
+                continue
+            prop(space, 'last-image', 'string', wallpaper)
+            prop(space, 'image-style', 'int', 5)
+            prop(space, 'color-style', 'int', 0)
+    atomic_write(path, ET.tostring(channel, encoding='unicode', xml_declaration=True))
+
+
+def entries(assets):
+    return {
+        'DroidDeck-Steam.desktop': '[Desktop Entry]\nType=Application\nName=Steam (Ubuntu)\nComment=Open Steam in the working Ubuntu gaming session; close Debian\nComment[fr]=Ouvre Steam dans Ubuntu et ferme le bureau Debian\nExec=/usr/local/bin/droiddeck-debian-tools steam %u\nIcon=' + str(assets / 'debian-steam.png') + '\nTerminal=false\nCategories=Game;\nMimeType=x-scheme-handler/steam;\n',
+        'DroidDeck-Ubuntu.desktop': '[Desktop Entry]\nType=Application\nName=Ubuntu applications\nName[fr]=Applications Ubuntu\nComment=Open Ubuntu Plasma and close Debian\nComment[fr]=Ouvre Ubuntu Plasma et ferme Debian\nExec=/usr/local/bin/droiddeck-debian-tools ubuntu\nIcon=computer\nTerminal=false\nCategories=System;\n',
+        'DroidDeck-Brave.desktop': '[Desktop Entry]\nType=Application\nName=Brave\nExec=/usr/local/bin/droiddeck-brave-browser %U\nIcon=/opt/brave.com/brave/product_logo_128.png\nTerminal=false\nCategories=Network;WebBrowser;\n',
+        'DroidDeck-Shared.desktop': '[Desktop Entry]\nType=Application\nName=Shared files\nName[fr]=Fichiers partagés\nExec=thunar /mnt/shared\nIcon=folder-open\nTerminal=false\nCategories=System;FileManager;\n',
+        'DroidDeck-Terminal.desktop': '[Desktop Entry]\nType=Application\nName=Debian terminal\nName[fr]=Terminal Debian\nExec=xfce4-terminal\nIcon=utilities-terminal\nTerminal=false\nCategories=System;TerminalEmulator;\n',
+    }
+
+
+def setup(home, assets=ASSETS, applications=APPLICATIONS, outputs=None):
+    home, assets, applications = Path(home), Path(assets), Path(applications)
+    marker = home / '.config' / MARKER
+    first = not marker.exists()
+    for name, text in entries(assets).items():
+        system = applications / ('droiddeck-brave.desktop' if name == 'DroidDeck-Brave.desktop' else name)
+        if name == 'DroidDeck-Brave.desktop' and system.exists():
+            text = system.read_text()
+        else:
+            atomic_write(system, text)
+        if first:
+            target = desktop_directory(home) / name
+            if not target.exists():
+                atomic_write(target, text + 'X-XFCE-Source=' + system.as_uri() + '\n')
+                target.chmod(0o755)
+    if first:
+        wallpaper = assets / 'debian-wallpaper.png'
+        if not wallpaper.is_file():
+            raise RuntimeError('Bundled Debian wallpaper is missing')
+        set_background(home, wallpaper, outputs if outputs is not None else monitors())
+        atomic_write(marker, '1\n')
+
+
+def launch(mode, url=''):
+    if mode not in ('steam', 'ubuntu'):
+        raise ValueError('Unknown desktop action')
+    if url and (not url.startswith('steam://') or len(url) > 4096 or any(c in url for c in '\r\n\x00')):
+        raise ValueError('Invalid Steam URL')
+    folder = Path(os.environ.get('BL_LAUNCH_DIR', ''))
+    if not os.environ.get('BL_LAUNCH_DIR') or not folder.is_dir():
+        raise RuntimeError('DroidDeck launch channel is unavailable')
+    text = 'ui=desktop\nurl=' + url + '\n'
+    if mode == 'ubuntu':
+        text += 'session=desktop\n'
+    atomic_write(folder / 'steam-launch', text)
+
+
+if __name__ == '__main__':
+    try:
+        if sys.argv[1:] == ['--setup']:
+            setup(Path.home())
+        elif len(sys.argv) in (2, 3):
+            launch(sys.argv[1], sys.argv[2] if len(sys.argv) == 3 else '')
+        else:
+            raise ValueError('Usage: droiddeck-debian-tools --setup | steam [steam://URL] | ubuntu')
+    except (OSError, ValueError, RuntimeError, ET.ParseError) as error:
+        print('Debian desktop: ' + str(error), file=sys.stderr)
+        sys.exit(1)

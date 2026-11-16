@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Brave Web Browser
+Name[fr]=Navigateur Brave
+Exec=/usr/local/bin/droiddeck-brave-browser %U
+Terminal=false
+Icon=/opt/brave.com/brave/product_logo_128.png
+Categories=Network;WebBrowser;
+MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;application/xhtml+xml;
+StartupNotify=true
+StartupWMClass=brave-browser

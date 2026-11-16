@@ -1,0 +1,16 @@
+{
+  "version": "0.7.1-xclipse920.11",
+  "phoneReportReviewed": true,
+  "previousZinkAndIceErrorsAbsent": true,
+  "observedErrors": [
+    "Steam transport 0x3009",
+    "Failed to connect to websocket",
+    "lsof: command not found"
+  ],
+  "fedoraTests": 26,
+  "realLoopbackOwnerAfterClearedPreloadTest": true,
+  "steamOnPhoneAfterFixValidated": false,
+  "systemPreloadUnderProotTestPassed": true,
+  "hostProotTestUsesFullTracing": true,
+  "androidProotOptionsUnchanged": true
+}
