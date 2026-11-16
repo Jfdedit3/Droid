@@ -26,3 +26,5 @@ Le complément Fedora de jeu est inclus dans `app/src/main/assets/bundled/`. La 
 [Page de téléchargement de l’APK](https://droiddeck-xclipse-download.z4trox.chatgpt.site) — accès selon les droits du site. [Notes techniques et historique](XCLIPSE-PERFORMANCE.fr.md).
 
 Les workflows GitHub d’origine sont conservés dans `.github/upstream-workflows/`. Ils ne sont pas activés automatiquement dans ce dépôt et doivent être adaptés avant utilisation.
+
+Pour reconstruire les composants natifs amont, initialiser les sous-modules épinglés avec `git submodule update --init --recursive`, puis suivre les recettes correspondantes. La méthode Java/Kotlin décrite utilise les bibliothèques natives officielles.
