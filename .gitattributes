@@ -35,3 +35,5 @@ app/src/main/assets/desktop-removal/*.txt text eol=lf
 *.gz binary
 *.xz binary
 *.zst binary
+
+*.part-* binary

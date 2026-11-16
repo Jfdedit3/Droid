@@ -1,0 +1,42 @@
+{
+  "file": "fedora-xfce-arm64.tgz",
+  "bytes": 317959100,
+  "sha256": "6697d531d24394b6cac448b0d1dcd833826219fe7b6b18199dfc49257e2a2175",
+  "parts": [
+    {
+      "file": "fedora-xfce-arm64.tgz.part-000",
+      "bytes": 50331648,
+      "sha256": "c4b690d1ea196a64d206cc240df391695954d1a7219e0ceadbf9a0adc27483fe"
+    },
+    {
+      "file": "fedora-xfce-arm64.tgz.part-001",
+      "bytes": 50331648,
+      "sha256": "994c6af3665a549b7b75a273e96e780927d1c6324d62761b4904148bb58f01d9"
+    },
+    {
+      "file": "fedora-xfce-arm64.tgz.part-002",
+      "bytes": 50331648,
+      "sha256": "af3161e40a46910434e5933eb1fba37c1059fe51b0c78d64211519d89dbfda17"
+    },
+    {
+      "file": "fedora-xfce-arm64.tgz.part-003",
+      "bytes": 50331648,
+      "sha256": "a9113b02cb054cc4f20dda303ee5c1be1a74cb17432b78ea2d728e1d8cf7e4db"
+    },
+    {
+      "file": "fedora-xfce-arm64.tgz.part-004",
+      "bytes": 50331648,
+      "sha256": "319f834dbff9d2f20e754e12740296f64e19def8bb54c565b24cb01444ea9404"
+    },
+    {
+      "file": "fedora-xfce-arm64.tgz.part-005",
+      "bytes": 50331648,
+      "sha256": "ad3ffba51f6b14cbb309be99f69bb193dd1faccfe29dd604b453033ccbd90cbc"
+    },
+    {
+      "file": "fedora-xfce-arm64.tgz.part-006",
+      "bytes": 15969212,
+      "sha256": "b86216774d4c52d11e4b126c94f3349d0179aeeec99df8c8c87c6296025eda7d"
+    }
+  ]
+}
