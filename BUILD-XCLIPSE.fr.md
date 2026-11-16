@@ -17,6 +17,6 @@ Cette archive contient les fichiers modifiés complets à superposer à cette ba
 
 Le build.gradle fourni recompile l'interface, Java et Kotlin ; il réutilise les bibliothèques natives et les assets de base de l'APK officiel 0.7.1. Le lanceur de bureau est remplacé par celui des sources et le paquet officiel Brave ARM64 ainsi que le système Fedora 43/Xfce ARM64 en aperçu sont ajoutés. Les tâches de recompilation native et la vérification des produits de cette recompilation ne s'appliquent donc pas à cette méthode et sont désactivées. Les empreintes et tailles des packs distants sont celles du BuildConfig officiel. Les licences d'origine sont conservées dans les assets.
 
-Identifiant distinct : com.droiddeck.launcher.xclipse920. Version : 0.7.1-xclipse920.13. Les données de l'application officielle ne sont pas reprises automatiquement. Ce n'est pas une signature du projet officiel.
+Identifiant distinct : com.droiddeck.launcher.xclipse920. Version : 0.7.1-xclipse920.14. Les données de l'application officielle ne sont pas reprises automatiquement. Ce n'est pas une signature du projet officiel.
 
 Les validations du bureau, FEX, journaux et JVM sont consignées dans les métadonnées et tools/fedora/validation.json. Le bureau a démarré sans droits root sous émulation ARM64. Steam y rencontre des appels de listes robustes non implémentés par QEMU ; son démarrage complet et les jeux sur le S22+ restent à vérifier. Ubuntu est conservé.

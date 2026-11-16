@@ -1,3 +1,13 @@
+## Version 0.7.1-xclipse920.14 — apparence Windows pour Ubuntu uniquement
+
+Le lanceur Ubuntu/Plasma prépare une apparence Windows claire : fond bleu original, bouton de menu à gauche, barre des tâches pleine largeur en bas, applications épinglées (Fichiers, Brave, Steam, Terminal), zone de notification et date à droite. Les boutons de fenêtre sont à droite ; les dossiers utilisent le double clic. La barre est opaque et le flou est désactivé. Les réglages de rendu et de jeux restent ceux déjà choisis ; aucun gain de FPS n’est mesuré.
+
+Le profil vérifie ID=ubuntu avant toute écriture. Il est appelé uniquement par le lanceur Plasma Ubuntu. Les lanceurs Fedora, son installateur et son complément de jeu sont identiques à la .13. Les fichiers originaux de configuration Ubuntu sont sauvegardés dans ~/.local/share/droiddeck/ubuntu-windows-v1/. Le profil ne se réapplique pas sur les personnalisations effectuées ensuite. Le panneau est reconstruit une fois par un script de mise à jour Plasma, après chargement des bureaux ; les widgets du bureau et les fichiers personnels sont conservés. Les anciens widgets du panneau restent récupérables avec la sauvegarde.
+
+Pour revenir à l’apparence d’origine : fermer le bureau Ubuntu, ouvrir un terminal dans le système Ubuntu, exécuter `python3 /usr/local/bin/droiddeck-ubuntu-windows --restore`, puis relancer le bureau. Cette restauration remet les configurations sauvegardées et ne réactive pas automatiquement le nouveau profil.
+
+Validation : six tests Python couvrent sauvegarde, personnalisation ultérieure, restauration, liens symboliques, refus sur Fedora et échec sans modification si les assets manquent. Le script de disposition Plasma a été exercé avec un modèle de ses API (plusieurs écrans, applications épinglées, conservation des widgets du bureau). Les propriétés utilisées ont été vérifiées dans les API Plasma 6.4. Le fond a été inspecté. L’affichage complet sur le S22+ reste à confirmer.
+
 ## Version 0.7.1-xclipse920.13 — utilitaire de suivi des jeux Fedora
 
 Le rapport du S22+ confirme le chargement des bibliothèques de la .12, la sélection RADV et le démarrage de l’affichage gamescope. Le lancement s’arrête ensuite sur « Failed to start process gamescopereaper: No such file or directory ». Le complément embarqué ajoute le véritable gamescopereaper ARM64 du paquet Fedora gamescope-3.16.23-1.fc43, vérifié par signature GPG et SHA-256, avec sa licence. Le programme gamescope personnalisé 3.16.29 reste inchangé.

@@ -1,0 +1,144 @@
+#!/usr/bin/python3
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import sys
+import tempfile
+
+FILES = ['kdeglobals', 'kwinrc', 'plasmarc', 'plasmashellrc',
+         'plasma-org.kde.plasma.desktop-appletsrc', 'ksplashrc', 'kcminputrc', 'gtk-3.0/settings.ini']
+ASSETS = Path('/usr/local/share/droiddeck')
+UPDATES = Path('/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates')
+UPDATE_NAME = 'droiddeck-ubuntu-windows-v1.js'
+
+
+def atomic(path, data, mode=0o600):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix=path.name + '.', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(data)
+        os.chmod(temporary, mode)
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def group(text, name, values):
+    header = '[' + name + ']'
+    lines = text.splitlines()
+    start = next((i for i, line in enumerate(lines) if line.strip() == header), None)
+    if start is None:
+        if lines and lines[-1]:
+            lines.append('')
+        start = len(lines)
+        lines.append(header)
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith('[')), len(lines))
+    for key, value in values.items():
+        pattern = re.compile(r'^' + re.escape(key) + r'(?:\[\$[a-z]+\])?=')
+        matches = [i for i in range(start + 1, end) if pattern.match(lines[i])]
+        if matches:
+            lines[matches[0]] = key + '=' + str(value)
+            for i in reversed(matches[1:]):
+                del lines[i]
+                end -= 1
+        else:
+            lines.insert(end, key + '=' + str(value))
+            end += 1
+    return '\n'.join(lines) + '\n'
+
+
+def is_ubuntu(release):
+    for line in release.read_text().splitlines():
+        if line.startswith('ID='):
+            return line[3:].strip().strip('"\'') == 'ubuntu'
+    return False
+
+
+def apply(home, release=Path('/etc/os-release'), assets=ASSETS, updates=UPDATES, restore=False):
+    if not is_ubuntu(release):
+        return 'skipped: not Ubuntu'
+    state = home / '.local/share/droiddeck/ubuntu-windows-v1'
+    marker = state / 'state.json'
+    snapshot = state / 'snapshot.json'
+    config = home / '.config'
+    update = updates / UPDATE_NAME
+    if restore:
+        if not snapshot.exists():
+            return 'no previous appearance to restore'
+        entries = json.loads(snapshot.read_text())
+        for name, metadata in entries.items():
+            target = config / name
+            if metadata.get('link') is not None:
+                target.unlink(missing_ok=True)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.symlink_to(metadata['link'])
+            elif metadata['exists']:
+                atomic(target, (state / 'original' / name).read_bytes(), metadata['mode'])
+            else:
+                target.unlink(missing_ok=True)
+        update.unlink(missing_ok=True)
+        atomic(marker, b'{"status":"restored"}\n')
+        return 'previous Ubuntu appearance restored; restart the desktop'
+    if marker.exists():
+        return 'already configured'
+    if not updates.parent.is_dir():
+        raise RuntimeError('Plasma shell package is missing')
+    layout = (assets / 'windows-layout.js').read_bytes()
+    if not (assets / 'windows-wallpaper.png').is_file():
+        raise RuntimeError('Windows-style wallpaper is missing')
+    state.mkdir(parents=True, exist_ok=True)
+    if not snapshot.exists():
+        entries = {}
+        for name in FILES:
+            target = config / name
+            exists = target.is_file()
+            entries[name] = {'exists': exists, 'mode': target.stat().st_mode & 0o777 if exists else 0o600,
+                             'link': os.readlink(target) if target.is_symlink() else None}
+            if exists:
+                atomic(state / 'original' / name, target.read_bytes())
+        atomic(snapshot, json.dumps(entries, indent=2).encode())
+    entries = json.loads(snapshot.read_text())
+    texts = {name: (state / 'original' / name).read_text() if entries[name]['exists'] else '' for name in FILES}
+    def set_group(file, section, values):
+        texts[file] = group(texts[file], section, values)
+    set_group('kdeglobals', 'General', {'ColorScheme': 'BreezeLight', 'AccentColor': '0,103,192'})
+    set_group('kdeglobals', 'KDE', {'LookAndFeelPackage': 'org.kde.breeze.desktop', 'widgetStyle': 'Breeze',
+                                   'SingleClick': 'false', 'AnimationDurationFactor': '0.4'})
+    set_group('kdeglobals', 'Icons', {'Theme': 'breeze'})
+    for section, background, foreground in [
+        ('Window', '243,246,251', '24,30,41'), ('View', '255,255,255', '24,30,41'),
+        ('Button', '246,248,252', '24,30,41'), ('Selection', '0,103,192', '255,255,255'),
+        ('Tooltip', '255,255,255', '24,30,41'), ('Complementary', '243,246,251', '24,30,41'),
+        ('Header', '243,246,251', '24,30,41')]:
+        set_group('kdeglobals', 'Colors:' + section, {'BackgroundNormal': background, 'BackgroundAlternate': background,
+                  'ForegroundNormal': foreground, 'ForegroundInactive': '100,110,127',
+                  'DecorationFocus': '0,103,192', 'DecorationHover': '54,136,216'})
+    set_group('plasmarc', 'Theme', {'name': 'default'})
+    set_group('kwinrc', 'org.kde.kdecoration2', {'library': 'org.kde.breeze', 'theme': 'Breeze',
+              'ButtonsOnLeft': '', 'ButtonsOnRight': 'IAX'})
+    set_group('kwinrc', 'Plugins', {'blurEnabled': 'false', 'contrastEnabled': 'false', 'wobblywindowsEnabled': 'false'})
+    set_group('ksplashrc', 'KSplash', {'Engine': 'none'})
+    set_group('kcminputrc', 'Mouse', {'cursorTheme': 'breeze_cursors', 'cursorSize': '24'})
+    set_group('gtk-3.0/settings.ini', 'Settings', {'gtk-theme-name': 'Breeze', 'gtk-application-prefer-dark-theme': '0',
+              'gtk-icon-theme-name': 'breeze', 'gtk-cursor-theme-name': 'breeze_cursors'})
+    # Plasma applies its layout update after loading existing desktop containments.
+    atomic(update, layout, 0o644)
+    for name in FILES:
+        if name not in ['plasmashellrc', 'plasma-org.kde.plasma.desktop-appletsrc']:
+            atomic(config / name, texts[name].encode())
+    atomic(marker, b'{"status":"applied"}\n')
+    return 'Windows-style Ubuntu appearance prepared; original settings backed up'
+
+
+if __name__ == '__main__':
+    try:
+        if sys.argv[1:] not in [[], ['--restore']]:
+            raise ValueError('Usage: droiddeck-ubuntu-windows [--restore]')
+        print('== ' + apply(Path.home(), restore=sys.argv[1:] == ['--restore']), flush=True)
+    except Exception as error:
+        print('== Ubuntu appearance: ' + str(error), file=sys.stderr)
+        sys.exit(1)

@@ -1,14 +1,16 @@
 # Droid
 
-Variante ARM64 de [DroidDeck 0.7.1](https://github.com/Droid-Deck/DroidDeck), adaptée au Samsung S22+ / Xclipse 920. Version des sources : **0.7.1-xclipse920.13**.
+Variante ARM64 de [DroidDeck 0.7.1](https://github.com/Droid-Deck/DroidDeck), adaptée au Samsung S22+ / Xclipse 920. Version des sources : **0.7.1-xclipse920.14**.
 
 Le dépôt contient les sources complètes de l’application, les tests, les outils et les modifications. Les crédits et licences amont sont conservés ; la présentation originale est disponible dans [README.upstream.md](README.upstream.md).
 
-Ubuntu/Plasma est conservé. Fedora 43/Xfce est un second bureau en aperçu avec Steam et les composants de jeu partagés, Brave et un profil distinct. Cette version ajoute l’utilitaire gamescopereaper ARM64 manquant et limite le réglage logiciel X11 au bureau. Les réglages RADV et GE-Proton choisis sont conservés.
+Ubuntu/Plasma reçoit une apparence Windows claire : fond bleu original, menu à gauche, barre des tâches pleine largeur, applications épinglées et boutons de fenêtre à droite. Les réglages précédents sont sauvegardés et les personnalisations ultérieures sont conservées. **Fedora 43/Xfce garde sa configuration et son apparence de la .13.** Les choix RADV et GE-Proton sont conservés.
 
 ## État de validation
 
-15 tests Java, 26 tests Fedora et 10 tests des lanceurs GPU passent. Le complément réel a été installé avec le code de l’application. L’utilitaire ARM64 a lancé et attendu son enfant sous émulation ; un second essai vérifie son arrêt propre. Le jeu et son rendu sur S22+ après ce correctif restent à confirmer. Aucun gain de FPS n’est annoncé.
+Six tests vérifient la sauvegarde, la restauration et l’absence de modification sur Fedora. Le script de disposition a été exercé avec un modèle des API Plasma (plusieurs écrans, applications épinglées et conservation des widgets du bureau). Les propriétés sont présentes dans les API Plasma 6.4 ; le fond a été inspecté. Les fichiers Fedora sont identiques à la version précédente. L’affichage complet sur S22+ reste à confirmer. Aucun gain de FPS n’est annoncé.
+
+Les contrôles précédents des composants inchangés restent applicables. Fedora reste en aperçu ; le jeu et son rendu après le correctif de lanceur .13 doivent encore être confirmés sur S22+.
 
 ## Compiler
 
