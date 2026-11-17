@@ -1821,6 +1821,19 @@ case $mode in
         unset bl_gl_ok bl_variant bl_kv
       fi
     fi
+    steam_client_env=()
+    if [ "${BL_DESKTOP:-}" = 1 ] && [ "${BL_STEAM_UI:-}" = desktop ] &&
+       [ "$steam_x64" = 0 ] && grep -Eq '^ID=("ubuntu"|ubuntu)$' /etc/os-release; then
+      steam_client_env=(env -u MESA_LOADER_DRIVER_OVERRIDE -u LIBGL_KOPPER_DRI2
+        DROIDDECK_UBUNTU_STEAM_SOFTWARE_UI=1
+        "DROIDDECK_UBUNTU_GAME_GALLIUM_DRIVER=${GALLIUM_DRIVER-}"
+        "DROIDDECK_UBUNTU_GAME_MESA_LOADER_DRIVER_OVERRIDE=${MESA_LOADER_DRIVER_OVERRIDE-}"
+        "DROIDDECK_UBUNTU_GAME_LIBGL_ALWAYS_SOFTWARE=${LIBGL_ALWAYS_SOFTWARE-}"
+        "DROIDDECK_UBUNTU_GAME_LIBGL_KOPPER_DRI2=${LIBGL_KOPPER_DRI2-}"
+        "DROIDDECK_UBUNTU_GAME_SDL_RENDER_DRIVER=${SDL_RENDER_DRIVER-}"
+        GALLIUM_DRIVER=llvmpipe LIBGL_ALWAYS_SOFTWARE=1 SDL_RENDER_DRIVER=software)
+      echo "== steam: Ubuntu desktop client and updater use software OpenGL"
+    fi
     rm -f "$HOME/.bl-restart-game" "$HOME/.bl-restarted-for"
     while :; do
       rm -f "$HOME/.bl-restart-once" "$HOME/.bl-restart-lost"
@@ -1848,7 +1861,7 @@ case $mode in
       steam_started=$SECONDS
       PATH="$bl_steam_path" \
       BL_STEAM_WEBHELPER="$steam_root/steamrtarm64/steamwebhelper" \
-      "${steam_client[@]}" "${_bl_ui[@]}" "${_bl_cdp[@]}" "${_bl_lang[@]}" -clientbeta "$steam_channel" \
+      "${steam_client_env[@]}" "${steam_client[@]}" "${_bl_ui[@]}" "${_bl_cdp[@]}" "${_bl_lang[@]}" -clientbeta "$steam_channel" \
         -no-cef-sandbox -cef-ozone-platform=x11 "${_bl_cef[@]}" "$@"
       rc=$?
       steam_ran=$((SECONDS - steam_started))

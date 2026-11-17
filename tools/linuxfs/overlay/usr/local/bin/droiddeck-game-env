@@ -366,6 +366,14 @@ def game_gpu(env, keep=False):
                 result[name] = value
             else:
                 result.pop(name, None)
+    if result.pop("DROIDDECK_UBUNTU_STEAM_SOFTWARE_UI", None) == "1":
+        for name in ("GALLIUM_DRIVER", "MESA_LOADER_DRIVER_OVERRIDE", "LIBGL_ALWAYS_SOFTWARE",
+                     "LIBGL_KOPPER_DRI2", "SDL_RENDER_DRIVER"):
+            value = result.pop("DROIDDECK_UBUNTU_GAME_" + name, "")
+            if value:
+                result[name] = value
+            else:
+                result.pop(name, None)
     if GAME_TU_DEBUG not in result:
         return result
     value = result.pop(GAME_TU_DEBUG)
