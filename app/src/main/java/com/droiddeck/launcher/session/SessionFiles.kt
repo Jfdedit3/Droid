@@ -22,6 +22,10 @@ object SessionFiles {
 
     internal val DESKTOP_FILES = arrayOf(
         "usr/local/bin/droiddeck-desktop" to "usr/local/bin/droiddeck-desktop",
+        "usr/local/bin/droiddeck-ubuntu-windows" to "usr/local/bin/droiddeck-ubuntu-windows",
+        "usr/local/share/droiddeck/windows-layout.js" to "usr/local/share/droiddeck/windows-layout.js",
+        "usr/local/share/droiddeck/windows-start.svg" to "usr/local/share/droiddeck/windows-start.svg",
+        "usr/local/share/droiddeck/windows-wallpaper.png" to "usr/local/share/droiddeck/windows-wallpaper.png",
         "usr/local/bin/droiddeck-brave-browser" to "usr/local/bin/droiddeck-brave-browser",
         "usr/local/bin/droiddeck-brave-defaults" to "usr/local/bin/droiddeck-brave-defaults",
         "usr/local/share/applications/droiddeck-brave.desktop" to "usr/local/share/applications/droiddeck-brave.desktop",
