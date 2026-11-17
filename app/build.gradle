@@ -90,27 +90,8 @@ def desktopKde = rootProject.file('tools/desktop-kde/release.env').readLines()
 def trackingPack = rootProject.file('tools/packs/tracking/release.env').readLines()
     .findAll { it.contains('=') && !it.startsWith('#') }
     .collectEntries { def kv = it.split('=', 2); [(kv[0].trim()): kv[1].trim()] }
-def prootPackPin = rootProject.file('tools/packs/proot/release.env').readLines()
-    .findAll { it.contains('=') && !it.startsWith('#') }
-    .collectEntries { def kv = it.split('=', 2); [(kv[0].trim()): kv[1].trim()] }
-def addonPacks = ['proot', 'directaudio', 'tracking', 'xbox', 'comet', 'butler', 'powervr'].collectEntries { name ->
-    def pack = file("build/packs/${name}.tar.zst")
-    if (!pack.isFile()) {
-        if (ciBuild) throw new GradleException("Add-on pack ${pack} is missing: run tools/packs/build.sh app/build/packs")
-        if (name == 'proot' && prootPackPin.PROOT_PACK_SHA256) {
-            return [(name): [sha256: prootPackPin.PROOT_PACK_SHA256, size: (prootPackPin.PROOT_PACK_SIZE ?: '0') as long]]
-        }
-        return [(name): [sha256: '', size: 0L]]
-    }
-    def digest = java.security.MessageDigest.getInstance('SHA-256')
-    pack.withInputStream { input ->
-        byte[] buffer = new byte[1 << 20]
-        int n
-        while ((n = input.read(buffer)) > 0) digest.update(buffer, 0, n)
-    }
-    [(name): [sha256: digest.digest().encodeHex().toString(), size: pack.length()]]
-}
-addonPacks = new groovy.json.JsonSlurper().parseText('{"proot": {"sha256": "6d3844bbcdc10d2cd237f35d858a1cf3e3b493bfe17c9466952caa584dc78a96", "size": 99210}, "directaudio": {"sha256": "fc3deada9eb56deca7a8f930c193ad9dbcf2a2c0f4fe094edcf905a82550b33f", "size": 22583}, "tracking": {"sha256": "968fcb3ff812c26d7f8421a2584cf42498458004c08c6f28900b09c0f4432415", "size": 25576818}, "xbox": {"sha256": "24cb41e2e9901fd269471d9270f1699731b73f26a8e4e80eec6bdf88eadf0ac2", "size": 14259109}, "comet": {"sha256": "73cca25e9c2b9506737ff6c9714d20c74b2a2bd5036fdfbbd4d9d8c1942a103a", "size": 4187027}, "butler": {"sha256": "f09fe478841a79a43267fce9050235c34207020274b8f62afe811dbe7bb725cf", "size": 7855451}, "powervr": {"sha256": "e695d3a8efd5edce13db3236a94bb5181286c6517cbfd60f99eda76d2997033b", "size": 33600870}}')
+// This variant uses the checksums of the official remote add-on packs.
+def addonPacks = new groovy.json.JsonSlurper().parseText('{"proot": {"sha256": "6d3844bbcdc10d2cd237f35d858a1cf3e3b493bfe17c9466952caa584dc78a96", "size": 99210}, "directaudio": {"sha256": "fc3deada9eb56deca7a8f930c193ad9dbcf2a2c0f4fe094edcf905a82550b33f", "size": 22583}, "tracking": {"sha256": "968fcb3ff812c26d7f8421a2584cf42498458004c08c6f28900b09c0f4432415", "size": 25576818}, "xbox": {"sha256": "24cb41e2e9901fd269471d9270f1699731b73f26a8e4e80eec6bdf88eadf0ac2", "size": 14259109}, "comet": {"sha256": "73cca25e9c2b9506737ff6c9714d20c74b2a2bd5036fdfbbd4d9d8c1942a103a", "size": 4187027}, "butler": {"sha256": "f09fe478841a79a43267fce9050235c34207020274b8f62afe811dbe7bb725cf", "size": 7855451}, "powervr": {"sha256": "e695d3a8efd5edce13db3236a94bb5181286c6517cbfd60f99eda76d2997033b", "size": 33600870}}')
 def desktopRemovalSources = new groovy.json.JsonSlurper().parse(file('src/main/assets/desktop-removal/sources.json'))
 if (desktopRemovalSources.archives[desktopKde.DESKTOP_KDE_TAG] != desktopKde.DESKTOP_KDE_SHA256) {
     throw new GradleException('Desktop removal inventories do not match the pinned archive')
