@@ -1,0 +1,116 @@
+name: Build DroidDeck Xclipse APK
+
+on:
+  push:
+    branches:
+      - main
+      - fix/ubuntu-windows-appearance
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK packages
+        run: sdkmanager 'platforms;android-34' 'build-tools;35.0.0'
+
+      - name: Test Ubuntu appearance
+        run: |
+          python3 -m unittest discover -s tools/tests -p test_ubuntu_windows.py
+          node tools/tests/test_windows_layout.mjs
+
+      - name: Prepare build inputs
+        run: |
+          official_apk="$RUNNER_TEMP/DroidDeck-0.7.1.apk"
+          brave_deb="app/src/main/assets/bundled/brave-arm64.deb"
+          mkdir -p "$(dirname "$brave_deb")"
+          curl --fail --silent --show-error --location --retry 3 \
+            -o "$official_apk" https://github.com/Droid-Deck/DroidDeck/releases/download/0.7.1/DroidDeck-0.7.1.apk
+          echo "179ab8b4dc8f9223b70a1e4287c55a090b36ee376242186a60211100158462f1  $official_apk" | sha256sum --check
+          python3 extract-official-runtime.py "$official_apk"
+          rm "$official_apk"
+          curl --fail --silent --show-error --location --retry 3 \
+            -o "$brave_deb" https://github.com/brave/brave-browser/releases/download/v1.99.57/brave-browser_1.99.57_arm64.deb
+          echo "d05df4f8a8c494075246820c17897a469614f879938a77557f025fda7be61db4  $brave_deb" | sha256sum --check
+          python3 tools/fedora/assemble-base.py
+
+      - name: Build and verify APK
+        id: apk
+        env:
+          KEYSTORE_BASE64: ${{ secrets.DROIDDECK_KEYSTORE_BASE64 }}
+          DROIDDECK_SIGNING_PASSWORD: ${{ secrets.DROIDDECK_SIGNING_PASSWORD }}
+        shell: bash
+        run: |
+          umask 077
+          export DROIDDECK_KEYSTORE="$(mktemp "$RUNNER_TEMP/droiddeck-signing.XXXXXX")"
+          trap 'rm -f "$DROIDDECK_KEYSTORE"' EXIT
+          signing=release
+          if [[ -n "$KEYSTORE_BASE64" && -n "$DROIDDECK_SIGNING_PASSWORD" ]]; then
+            printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$DROIDDECK_KEYSTORE"
+          elif [[ -z "$KEYSTORE_BASE64" && -z "$DROIDDECK_SIGNING_PASSWORD" ]]; then
+            signing=test
+            echo "::notice::Using a temporary signing key. This APK cannot update an existing installation."
+            DROIDDECK_SIGNING_PASSWORD="$(openssl rand -hex 24)"
+            echo "::add-mask::$DROIDDECK_SIGNING_PASSWORD"
+            rm "$DROIDDECK_KEYSTORE"
+            keytool -genkeypair -storetype PKCS12 -keystore "$DROIDDECK_KEYSTORE" \
+              -storepass:env DROIDDECK_SIGNING_PASSWORD -alias xclipse920 \
+              -keyalg RSA -keysize 2048 -validity 365 -dname 'CN=DroidDeck CI Test'
+          else
+            echo "::error::Configure both signing secrets or leave both empty for a test APK."
+            exit 1
+          fi
+          unset KEYSTORE_BASE64
+
+          ./gradlew --no-daemon --max-workers=3 :app:packageRelease -x verifyRuntimeInputs
+
+          shopt -s nullglob
+          apks=(app/build/outputs/apk/release/*.apk)
+          if [[ "${#apks[@]}" -ne 1 ]]; then
+            echo "::error::Expected exactly one APK in app/build/outputs/apk/release."
+            exit 1
+          fi
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs "${apks[0]}"
+          python3 - "${apks[0]}" <<'PY'
+          import sys
+          from zipfile import ZipFile
+
+          required = {
+              'assets/linuxfs/usr/local/bin/droiddeck-desktop',
+              'assets/linuxfs/usr/local/bin/droiddeck-ubuntu-windows',
+              'assets/linuxfs/usr/local/share/droiddeck/windows-layout.js',
+              'assets/linuxfs/usr/local/share/droiddeck/windows-start.svg',
+              'assets/linuxfs/usr/local/share/droiddeck/windows-wallpaper.png',
+          }
+          with ZipFile(sys.argv[1]) as apk:
+              missing = required.difference(apk.namelist())
+          if missing:
+              raise SystemExit('Missing APK assets: ' + ', '.join(sorted(missing)))
+          PY
+
+          mkdir -p dist
+          apk_name="DroidDeck-Xclipse920-${GITHUB_SHA:0:7}-$signing.apk"
+          cp "${apks[0]}" "dist/$apk_name"
+          (cd dist && sha256sum "$apk_name" > SHA256SUMS)
+          echo "name=${apk_name%.apk}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.name }}
+          path: dist/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
