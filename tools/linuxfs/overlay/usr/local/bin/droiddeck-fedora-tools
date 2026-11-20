@@ -20,7 +20,7 @@ def atomic_write(path, text):
 def install_transport(lsof=Path('/usr/bin/lsof'), preload=Path('/etc/ld.so.preload')):
     # Steam clears LD_PRELOAD for some children; Ubuntu loads these hooks through ld.so.preload.
     lines = preload.read_text().splitlines() if preload.exists() else []
-    for library in ('/usr/local/lib/libblsession.so', '/usr/local/lib/libfakeinput.so'):
+    for library in ('/usr/local/lib/libddsession.so', '/usr/local/lib/libfakeinput.so'):
         if library not in lines:
             lines.append(library)
     atomic_write(preload, '\n'.join(lines) + '\n')
@@ -39,7 +39,7 @@ def steam_lsof(arguments, environ=None):
             port = int(match[1])
     if port is None or not 1 <= port <= 65535:
         return 1
-    base = Path(environ.get('BL_SYSV_DIR') or '/dev/shm/wnsysv')
+    base = Path(environ.get('DD_SYSV_DIR') or '/dev/shm/wnsysv')
     try:
         with (base / 'net' / ('p%d' % port)).open() as source:
             values = source.read(256).split()
@@ -184,8 +184,8 @@ def launch(mode, url=''):
     if mode == 'steam':
         os.execv('/usr/libexec/droiddeck-fedora/droiddeck-fedora-steam', ['droiddeck-fedora-steam', url])
         return
-    folder = Path(os.environ.get('BL_LAUNCH_DIR', ''))
-    if not os.environ.get('BL_LAUNCH_DIR') or not folder.is_dir():
+    folder = Path(os.environ.get('DD_LAUNCH_DIR', ''))
+    if not os.environ.get('DD_LAUNCH_DIR') or not folder.is_dir():
         raise RuntimeError('DroidDeck launch channel is unavailable')
     text = 'ui=desktop\nurl=' + url + '\n'
     if mode == 'ubuntu':

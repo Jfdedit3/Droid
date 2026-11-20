@@ -120,7 +120,7 @@ object FedoraDesktop {
             for (relative in listOf("root/.local/share/Steam", "root/.config/droiddeck", "root/.local/share/droiddeck-fex"))
                 File(ubuntu, relative).mkdirs()
             check(FileUtils.writeString(File(ubuntu, "etc/droiddeck/fedora-preload"),
-                "/usr/local/lib/libblsession.so\n/usr/local/lib/libfakeinput.so\n"))
+                "/usr/local/lib/libddsession.so\n/usr/local/lib/libfakeinput.so\n"))
             BraveDesktop.install(context, ubuntu)
         }
         val binds = ArrayList(LinuxRuntime.binds(context, sessionRoot, runtimeDir,
@@ -132,7 +132,7 @@ object FedoraDesktop {
         for (relative in listOf("usr/local",
             "etc/droiddeck", "root/.local/share/Steam", "root/.local/share/droiddeck-fex",
             "root/.config/droiddeck", "root/.droiddeck-x64", "run/udev/data",
-            "root/.bl-proton-extra", "root/.bl-steam-urls")) share(relative)
+            "root/.dd-proton-extra", "root/.dd-steam-urls")) share(relative)
         for (kind in listOf("implicit_layer.d", "explicit_layer.d")) {
             File(ubuntu, "usr/share/vulkan/$kind").listFiles()?.filter {
                 it.isFile && it.name.lowercase().contains("droiddeck") && it.extension == "json"

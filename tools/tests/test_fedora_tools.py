@@ -99,28 +99,28 @@ class DesktopIntegrationTests(unittest.TestCase):
         self.assertFalse((self.home / 'Desktop').exists())
 
     def test_steam_executes_in_this_desktop_without_a_relaunch_request(self):
-        with patch.dict(os.environ, BL_LAUNCH_DIR=str(self.root)), patch.object(tools.os, 'execv') as execute:
+        with patch.dict(os.environ, DD_LAUNCH_DIR=str(self.root)), patch.object(tools.os, 'execv') as execute:
             tools.launch('steam', 'steam://rungameid/123')
         execute.assert_called_once_with('/usr/libexec/droiddeck-fedora/droiddeck-fedora-steam',
             ['droiddeck-fedora-steam', 'steam://rungameid/123'])
         self.assertFalse((self.root / 'steam-launch').exists())
 
     def test_ubuntu_selects_the_existing_plasma_mode(self):
-        with patch.dict(os.environ, BL_LAUNCH_DIR=str(self.root)):
+        with patch.dict(os.environ, DD_LAUNCH_DIR=str(self.root)):
             tools.launch('ubuntu')
         self.assertEqual((self.root / 'steam-launch').read_text(), 'ui=desktop\nurl=\nsession=desktop\n')
 
     def test_invalid_requests_do_not_replace_the_mailbox(self):
         request = self.root / 'steam-launch'
         request.write_text('previous')
-        with patch.dict(os.environ, BL_LAUNCH_DIR=str(self.root)):
+        with patch.dict(os.environ, DD_LAUNCH_DIR=str(self.root)):
             for mode, url in [('unknown', ''), ('steam', 'https://example.test'), ('steam', 'steam://foo\nsession=desktop'), ('steam', 'steam://foo\x00')]:
                 with self.subTest(mode=mode, url=url), self.assertRaises(ValueError):
                     tools.launch(mode, url)
         self.assertEqual(request.read_text(), 'previous')
 
     def test_steam_does_not_need_the_session_switch_channel(self):
-        with patch.dict(os.environ, BL_LAUNCH_DIR=''), patch.object(tools.os, 'execv') as execute:
+        with patch.dict(os.environ, DD_LAUNCH_DIR=''), patch.object(tools.os, 'execv') as execute:
             tools.launch('steam')
         self.assertTrue(execute.called)
 
@@ -164,7 +164,7 @@ class SteamTransportTests(unittest.TestCase):
             (self.root / 'net/p43210').write_text(data)
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            status = tools.steam_lsof(args or ['-nP', '-F', 'pRu', '-iTCP@127.0.0.1:43210'], {'BL_SYSV_DIR': str(self.root)})
+            status = tools.steam_lsof(args or ['-nP', '-F', 'pRu', '-iTCP@127.0.0.1:43210'], {'DD_SYSV_DIR': str(self.root)})
         return status, output.getvalue()
 
     def test_connected_socket_uses_upstream_lsof_protocol(self):
@@ -189,7 +189,7 @@ class SteamTransportTests(unittest.TestCase):
         lsof = self.root / 'bin/lsof'
         tools.install_transport(lsof, preload)
         tools.install_transport(lsof, preload)
-        self.assertEqual(preload.read_text(), '/custom/library.so\n/usr/local/lib/libblsession.so\n/usr/local/lib/libfakeinput.so\n')
+        self.assertEqual(preload.read_text(), '/custom/library.so\n/usr/local/lib/libddsession.so\n/usr/local/lib/libfakeinput.so\n')
         self.assertTrue(os.access(lsof, os.X_OK))
         self.assertIn('--lsof', lsof.read_text())
 

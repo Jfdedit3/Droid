@@ -1,0 +1,112 @@
+{
+  "jvm": [
+    {
+      "class": "com.droiddeck.launcher.core.HostProcessTest",
+      "tests": 1
+    },
+    {
+      "class": "com.droiddeck.launcher.session.SessionLogShareTest",
+      "tests": 25
+    },
+    {
+      "class": "com.droiddeck.launcher.core.SessionLogCaptureTest",
+      "tests": 2
+    },
+    {
+      "class": "com.droiddeck.launcher.session.Xclipse920ProfileTest",
+      "tests": 6
+    },
+    {
+      "class": "com.droiddeck.launcher.runtime.BwrapSpawnerPlanTest",
+      "tests": 11
+    },
+    {
+      "class": "com.droiddeck.launcher.runtime.NativeGuestTest",
+      "tests": 9
+    },
+    {
+      "class": "com.droiddeck.launcher.core.RootfsArchiveTest",
+      "tests": 7
+    },
+    {
+      "class": "com.droiddeck.launcher.gpu.LightFrameGenPolicyTest",
+      "tests": 8
+    },
+    {
+      "class": "com.droiddeck.launcher.update.AppUpdatesTest",
+      "tests": 32
+    },
+    {
+      "class": "com.droiddeck.launcher.runtime.BwrapSpawnerTest",
+      "tests": 8
+    },
+    {
+      "class": "com.droiddeck.launcher.gpu.FrameGenTest",
+      "tests": 8
+    },
+    {
+      "class": "com.droiddeck.launcher.session.PipPolicyTest",
+      "tests": 4
+    },
+    {
+      "class": "com.droiddeck.launcher.session.SessionPathsTest",
+      "tests": 4
+    },
+    {
+      "class": "com.droiddeck.launcher.core.DownloaderResumeTest",
+      "tests": 15
+    },
+    {
+      "class": "com.droiddeck.launcher.session.SessionLogShareZipTest",
+      "tests": 8
+    },
+    {
+      "class": "com.droiddeck.launcher.session.EnhancedSessionLogShareTest",
+      "tests": 20
+    },
+    {
+      "class": "com.droiddeck.launcher.core.FedoraGamingPayloadTest",
+      "tests": 8
+    }
+  ],
+  "apk": {
+    "signatureVerified": true,
+    "signerSha256": "5cfac93f7da282a6811383331266c92e6a6b0a0549ea2f542186f46f852a4502",
+    "version": "0.7.1-xclipse920.15-preview",
+    "versionCode": 33,
+    "targetSdk": 34,
+    "nativeLibrariesReusedUnchanged": 37,
+    "officialAssetsReusedUnchanged": 212,
+    "changedOfficialAssets": [
+      "assets/dexopt/baseline.prof",
+      "assets/dexopt/baseline.profm",
+      "assets/linuxfs/usr/local/bin/droiddeck-bwrap",
+      "assets/linuxfs/usr/local/bin/droiddeck-desktop",
+      "assets/linuxfs/usr/local/bin/droiddeck-fex",
+      "assets/linuxfs/usr/local/bin/droiddeck-game-env",
+      "assets/linuxfs/usr/local/bin/droiddeck-session",
+      "assets/shortcuts.apk"
+    ],
+    "bundledPayloadHashesVerified": true,
+    "companionSignatureAndPackageVerified": true,
+    "customFeaturesInDex": true,
+    "addOnPackHashesInDex": true,
+    "bytes": 569333816,
+    "sha256": "bb2168bed3a3e297f097ec3f588e6187b5d66048e41070d1df3e57ba300867ef"
+  },
+  "python": {
+    "gameEnvironment": 195,
+    "fedora": 26,
+    "bwrapFex": 9,
+    "steamDesktopLaunch": 14,
+    "gpuLaunchers": 11,
+    "brave": 3,
+    "ubuntuWindows": 6,
+    "softwareUiIsolation": 2
+  },
+  "standaloneJunit": {
+    "lightFg": 13,
+    "failureLogs": 9
+  },
+  "hardwareTested": false
+}

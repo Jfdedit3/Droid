@@ -1,19 +1,19 @@
 #!/bin/bash
 set -eu
-if [ -n "${BL_DEBUG_DIR:-}" ]; then
-  mkdir -p "$BL_DEBUG_DIR"
-  exec >>"$BL_DEBUG_DIR/steam-fedora.log" 2>&1
+if [ -n "${DD_DEBUG_DIR:-}" ]; then
+  mkdir -p "$DD_DEBUG_DIR"
+  exec >>"$DD_DEBUG_DIR/steam-fedora.log" 2>&1
 fi
 record_exit() {
   status=$?
-  if [ "$status" -ne 0 ] && [ -n "${BL_DEBUG_DIR:-}" ]; then
-    printf 'exit=%s\n' "$status" >"$BL_DEBUG_DIR/steam-failed"
+  if [ "$status" -ne 0 ] && [ -n "${DD_DEBUG_DIR:-}" ]; then
+    printf 'exit=%s\n' "$status" >"$DD_DEBUG_DIR/steam-failed"
   fi
 }
 trap record_exit EXIT
-export BL_DESKTOP=1 BL_INSIDE=1 BL_STEAM_UI=desktop
+export DD_DESKTOP=1 DD_INSIDE=1 DD_STEAM_UI=desktop
 export DROIDDECK_HOST_PRELOAD=/etc/droiddeck/fedora-preload
-export LD_PRELOAD=/usr/local/lib/libblsession.so:/usr/local/lib/libfakeinput.so:libXrandr.so.2
+export LD_PRELOAD=/usr/local/lib/libddsession.so:/usr/local/lib/libfakeinput.so:libXrandr.so.2
 export GALLIUM_DRIVER=llvmpipe LIBGL_ALWAYS_SOFTWARE=1
 unset MESA_LOADER_DRIVER_OVERRIDE LIBGL_KOPPER_DRI2 DROIDDECK_LINK_RENAME
 steam_root=${XDG_DATA_HOME:-$HOME/.local/share}/Steam
@@ -29,7 +29,7 @@ fi
 echo "== Steam starting inside Fedora on ${DISPLAY:-unset}; desktop stays open"
 status=0
 /usr/local/bin/droiddeck-steam-launch desktop "${1:-}" || status=$?
-if [ "$status" -ne 0 ] && [ -n "${BL_DEBUG_DIR:-}" ]; then
-  printf 'exit=%s\n' "$status" >"$BL_DEBUG_DIR/steam-failed"
+if [ "$status" -ne 0 ] && [ -n "${DD_DEBUG_DIR:-}" ]; then
+  printf 'exit=%s\n' "$status" >"$DD_DEBUG_DIR/steam-failed"
 fi
 exit "$status"

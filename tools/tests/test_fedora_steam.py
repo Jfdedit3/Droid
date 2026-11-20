@@ -26,7 +26,7 @@ class FedoraSteamTests(unittest.TestCase):
         text = text.replace('/usr/lib64', str(self.libs)).replace('/usr/local/bin/droiddeck-steam-launch', str(self.client))
         text = text.replace('export LD_PRELOAD=', '# Test executable uses host libraries.\n# LD_PRELOAD=')
         self.script.write_text(text)
-        self.env = dict(os.environ, HOME=str(self.home), BL_DEBUG_DIR=str(self.logs),
+        self.env = dict(os.environ, HOME=str(self.home), DD_DEBUG_DIR=str(self.logs),
                         TEST_ENV=str(self.root / 'env'), GALLIUM_DRIVER='zink',
                         MESA_LOADER_DRIVER_OVERRIDE='zink', LIBGL_KOPPER_DRI2='true')
 

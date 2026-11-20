@@ -19,7 +19,7 @@ assert v.stdout=='p%d\\nR%d\\nu%d\\nn127.0.0.1:%d\\n'%(os.getpid(),os.getppid(),
 print('Real loopback socket owner identified after child clears LD_PRELOAD: PASS')
 '''
     with tempfile.TemporaryDirectory() as directory:
-        env=dict(os.environ,LD_PRELOAD=str(NetlinkPreloadTest.preload),BL_SYSV_DIR=directory)
+        env=dict(os.environ,LD_PRELOAD=str(NetlinkPreloadTest.preload),DD_SYSV_DIR=directory)
         subprocess.run([sys.executable,'-c',program,str(helper)],env=env,check=True,timeout=20)
         if len(sys.argv) > 1:
             root = Path(directory) / 'guest'

@@ -1,0 +1,15 @@
+{
+  "channel": "preview",
+  "stableVersion": "0.7.1",
+  "sourceRepository": "https://github.com/Droid-Deck/DroidDeck",
+  "sourceCommit": "56986b5999588463753b6db47b4de2d357d21e30",
+  "sourceDate": "2026-11-20T06:37:02Z",
+  "commitsSinceStable": 290,
+  "nativeRuntimeCommit": "fccd13689c92b99f1353d61afd8f523becb6dad3",
+  "nativeRuntimeApk": "https://github.com/Droid-Deck/DroidDeck-CI/releases/download/main-fccd136/DroidDeck-main-fccd136.apk",
+  "nativeRuntimeApkSha256": "c2642d6726b03f9c925dbee10468391b242cc75738d4d7ff14df0750d1e5b3e5",
+  "nativeCompatibility": "The five later upstream commits change Java/Kotlin and JVM tests only; no native, runtime asset, pack pin or build dependency changed.",
+  "customAdditions": ["Xclipse 920 profile", "manual RADV and Proton choices preserved", "Brave default", "light adaptive frame generation with per-game profiles", "Ubuntu Windows appearance with backup", "independent Fedora Xfce desktop", "download retries and progress", "failure log retention", "Ubuntu desktop Steam software UI correction from branch 551f7bf"],
+  "fedoraMigration": "Custom helpers use upstream DD_* names and libddsession.so; Fedora remains on PRoot even if Ubuntu native userland is enabled.",
+  "hardwareTested": false
+}

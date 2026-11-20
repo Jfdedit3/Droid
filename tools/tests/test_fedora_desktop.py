@@ -19,11 +19,11 @@ class FedoraLauncherTests(unittest.TestCase):
         self.home.mkdir()
         self.env = dict(os.environ, HOME=str(self.home), MOCK_DIR=str(self.root), PATH=str(self.root / 'bin') + ':' + os.environ['PATH'])
         self.env.update(GALLIUM_DRIVER='zink', MESA_LOADER_DRIVER_OVERRIDE='zink', LIBGL_KOPPER_DRI2='true')
-        self.env['BL_WIDTH'] = '1280'
-        self.env['BL_HEIGHT'] = '720'
+        self.env['DD_WIDTH'] = '1280'
+        self.env['DD_HEIGHT'] = '720'
         self.env['WAYLAND_DISPLAY'] = 'wayland-0'
         self.env['XDG_RUNTIME_DIR'] = str(self.root)
-        self.env['BL_DEBUG_DIR'] = str(self.root)
+        self.env['DD_DEBUG_DIR'] = str(self.root)
         self.socket = socket.socket(socket.AF_UNIX)
         self.socket.bind(str(self.root / 'wayland-0'))
         self.addCleanup(self.socket.close)
@@ -60,11 +60,11 @@ class FedoraLauncherTests(unittest.TestCase):
         xenv = (self.root / 'xwayland-env').read_text()
         self.assertIn('DROIDDECK_LINK_RENAME=1', xenv)
         self.assertIn('XWAYLAND_NO_GLAMOR=1', xenv)
-        self.assertIn('LD_PRELOAD=/usr/local/lib/libblsession.so', xenv)
+        self.assertIn('LD_PRELOAD=/usr/local/lib/libddsession.so', xenv)
         self.assertIn('1280x720', (self.root / 'args').read_text())
         env = (self.root / 'session-env').read_text()
         self.assertIn('DISPLAY=:1', env)
-        self.assertIn('BL_DESKTOP=1', env)
+        self.assertIn('DD_DESKTOP=1', env)
         self.assertIn('GALLIUM_DRIVER=llvmpipe', env)
         self.assertIn('LIBGL_ALWAYS_SOFTWARE=1', env)
         self.assertNotIn('\nMESA_LOADER_DRIVER_OVERRIDE=', env)

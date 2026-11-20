@@ -41,3 +41,4 @@ app/src/main/assets/hybris/
 app/src/main/assets/bundled/fedora-xfce-arm64.tgz
 app/src/main/assets/bundled/brave-arm64.deb
 *.apk
+app/src/main/assets/linuxfs/usr/local/lib/droiddeck-rockstar/

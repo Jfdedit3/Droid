@@ -93,7 +93,7 @@ def trackingPack = rootProject.file('tools/packs/tracking/release.env').readLine
 def prootPackPin = rootProject.file('tools/packs/proot/release.env').readLines()
     .findAll { it.contains('=') && !it.startsWith('#') }
     .collectEntries { def kv = it.split('=', 2); [(kv[0].trim()): kv[1].trim()] }
-def addonPacks = ['proot', 'directaudio', 'tracking', 'xbox', 'comet', 'butler', 'powervr'].collectEntries { name ->
+def addonPacks = ['proot', 'directaudio', 'tracking', 'xbox', 'comet', 'butler', 'powervr', 'ubisoft', 'rockstar', 'dirt'].collectEntries { name ->
     def pack = file("build/packs/${name}.tar.zst")
     if (!pack.isFile()) {
         if (ciBuild) throw new GradleException("Add-on pack ${pack} is missing: run tools/packs/build.sh app/build/packs")
@@ -110,7 +110,7 @@ def addonPacks = ['proot', 'directaudio', 'tracking', 'xbox', 'comet', 'butler',
     }
     [(name): [sha256: digest.digest().encodeHex().toString(), size: pack.length()]]
 }
-addonPacks = new groovy.json.JsonSlurper().parseText('{"proot": {"sha256": "6d3844bbcdc10d2cd237f35d858a1cf3e3b493bfe17c9466952caa584dc78a96", "size": 99210}, "directaudio": {"sha256": "fc3deada9eb56deca7a8f930c193ad9dbcf2a2c0f4fe094edcf905a82550b33f", "size": 22583}, "tracking": {"sha256": "968fcb3ff812c26d7f8421a2584cf42498458004c08c6f28900b09c0f4432415", "size": 25576818}, "xbox": {"sha256": "24cb41e2e9901fd269471d9270f1699731b73f26a8e4e80eec6bdf88eadf0ac2", "size": 14259109}, "comet": {"sha256": "73cca25e9c2b9506737ff6c9714d20c74b2a2bd5036fdfbbd4d9d8c1942a103a", "size": 4187027}, "butler": {"sha256": "f09fe478841a79a43267fce9050235c34207020274b8f62afe811dbe7bb725cf", "size": 7855451}, "powervr": {"sha256": "e695d3a8efd5edce13db3236a94bb5181286c6517cbfd60f99eda76d2997033b", "size": 33600870}}')
+addonPacks = new groovy.json.JsonSlurper().parseText('{"butler": {"sha256": "f09fe478841a79a43267fce9050235c34207020274b8f62afe811dbe7bb725cf", "size": 7855451}, "comet": {"sha256": "73cca25e9c2b9506737ff6c9714d20c74b2a2bd5036fdfbbd4d9d8c1942a103a", "size": 4187027}, "directaudio": {"sha256": "fc3deada9eb56deca7a8f930c193ad9dbcf2a2c0f4fe094edcf905a82550b33f", "size": 22583}, "dirt": {"sha256": "9e75ac1fcd1ce0ee0df950414034e46f59acfea7a0e650ea59b84ad20f682af2", "size": 4169}, "powervr": {"sha256": "e695d3a8efd5edce13db3236a94bb5181286c6517cbfd60f99eda76d2997033b", "size": 33600870}, "proot": {"sha256": "7800e188363f2b99485e8b9e4f68ea77eb65b088ca66b9e508a3a0938acea394", "size": 99536}, "rockstar": {"sha256": "2e01446acc2b001629a83cb4abadf707d6ff63b5d3371255462d8421039320b4", "size": 430454}, "tracking": {"sha256": "968fcb3ff812c26d7f8421a2584cf42498458004c08c6f28900b09c0f4432415", "size": 25576818}, "ubisoft": {"sha256": "14786bbd4621f9338e94ef90d7b8eecedeaf8dd1a263053eed473eb7cb20df3c", "size": 179387}, "xbox": {"sha256": "f86de83056c76da197e90fb533deaa83177aef84a65f84ae0a6c683a423d4299", "size": 13061596}}')
 def desktopRemovalSources = new groovy.json.JsonSlurper().parse(file('src/main/assets/desktop-removal/sources.json'))
 if (desktopRemovalSources.archives[desktopKde.DESKTOP_KDE_TAG] != desktopKde.DESKTOP_KDE_SHA256) {
     throw new GradleException('Desktop removal inventories do not match the pinned archive')
@@ -131,9 +131,9 @@ android {
     defaultConfig {
         applicationId "com.droiddeck.launcher.xclipse920"
         minSdkVersion 26
-        targetSdkVersion 28
-        versionCode 32
-        versionName "0.7.1-xclipse920.14"
+        targetSdkVersion 34
+        versionCode 33
+        versionName "0.7.1-xclipse920.15-preview"
         buildConfigField "String", "BUILD_LABEL", "\"${escapedBuildLabel}\""
         buildConfigField "String", "SOURCE_COMMIT", "\"${sourceCommit}\""
         buildConfigField "int", "PR_NUMBER", "${prNumber}"
@@ -142,6 +142,7 @@ android {
         buildConfigField "boolean", "CI_BUILD", "${ciBuild}"
         buildConfigField "String", "RELEASE_SIGNER", "\"${releaseSigner}\""
         buildConfigField "long", "COMMIT_TIME", "${commitTime}L * 1000L"
+        buildConfigField "String", "UPDATE_CATALOG_BRANCH", "\"${(System.getenv("DROIDDECK_UPDATE_CATALOG_BRANCH") ?: "main").with { it ==~ /[A-Za-z0-9._-]+/ ? it : "main" }}\""
         buildConfigField "String", "VARIANT_SUFFIXES", "\"${variantSuffixes}\""
         buildConfigField "String", "SGDB_API_KEY", "\"${System.getenv("SGDB_API_KEY") ?: project.findProperty("sgdbApiKey") ?: ""}\""
         buildConfigField "String", "DESKTOP_KDE_TAG", "\"${desktopKde.DESKTOP_KDE_TAG}\""
@@ -190,13 +191,9 @@ android {
         }
     }
 
-    lint {
-        disable 'ExpiredTargetSdkVersion'
-    }
-
     androidResources {
         noCompress += ['deb', 'tgz']
-        ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:<dir>droiddeck-xbox:<dir>droiddeck-comet:<dir>directaudio:<dir>hybris'
+        ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~:<dir>droiddeck-xbox:<dir>droiddeck-comet:<dir>droiddeck-ubisoft:<dir>droiddeck-rockstar:<dir>droiddeck-dirt:<dir>directaudio:<dir>hybris'
     }
 
     packagingOptions {
@@ -205,8 +202,9 @@ android {
         }
         jniLibs {
             useLegacyPackaging = true
-            pickFirsts += ['**/*.so']
-            excludes += ['**/libproot.so', '**/libproot-loader.so', '**/libopencv_java4.so', '**/libmediapipe_tasks_jni.so']
+            keepDebugSymbols += ['**/*.so']
+            pickFirsts += fileTree('src/main/jniLibs').matching { include '**/*.so' }.files.collect { '**/' + it.name }
+            excludes += ['**/libproot.so', '**/libopencv_java4.so', '**/libmediapipe_tasks_jni.so']
         }
     }
 
@@ -269,8 +267,12 @@ def stageRuntimeAssets = tasks.register('stageRuntimeAssets', Sync) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     dependsOn(stageSessionScripts)
     from(rootProject.file('tools/linuxfs/desktop/droiddeck-desktop')) { into 'linuxfs/usr/local/bin' }
-    from(layout.projectDirectory.dir('src/main/assets')) { exclude 'dexopt/**' }
+    from(layout.projectDirectory.dir('src/main/assets')) { exclude 'dexopt/**', 'shortcuts.apk' }
     from(rootProject.file('tools/linuxfs/innoextract'))
+    from(rootProject.file('tools')) { include 'droiddeckctl', 'droiddeck-scenario', 'adb_device.py', 'proot_profile.py'; into('agent/ctl') }
+    from(rootProject.file('tools/agent/AGENTS.md')) { into('agent/ctl') }
+    from(rootProject.file('docs/agent-control.md')) { into('agent/ctl') }
+    from(rootProject.file('tools/agent/skills')) { into('agent/skills') }
     from(layout.buildDirectory.dir('prepared-assets'))
     into(runtimeAssetsDir)
 }
@@ -285,6 +287,16 @@ if (uvcDir) {
     android.sourceSets.main.assets.srcDir(layout.buildDirectory.dir('uvcAssets'))
 }
 tasks.named('preBuild').configure { dependsOn(stageRuntimeAssets) }
+
+android.sourceSets.main.java.srcDir(rootProject.file('shortcuts/src/protocol/java'))
+def stageShortcuts = tasks.register('stageShortcuts', Copy) {
+    dependsOn(':shortcuts:assembleRelease')
+    from(project(':shortcuts').layout.buildDirectory.file('outputs/apk/release/shortcuts-release.apk'))
+    into(layout.buildDirectory.dir('shortcutsAssets'))
+    rename { 'shortcuts.apk' }
+}
+android.sourceSets.main.assets.srcDir(layout.buildDirectory.dir('shortcutsAssets'))
+tasks.named('preBuild').configure { dependsOn(stageShortcuts) }
 
 def stageGogNotices = tasks.register('stageGogNotices', Copy) {
     from(layout.projectDirectory.dir('src/main/rust/stores/vendor/xdelta3')) { include 'LICENSE', 'README.droiddeck.md' }
@@ -338,9 +350,16 @@ dependencies {
     implementation 'androidx.compose.material3:material3'
     implementation 'androidx.compose.ui:ui-tooling-preview'
     debugImplementation 'androidx.compose.ui:ui-tooling'
+    // Declares the ComponentActivity that createComposeRule launches, for PreviewRenderTest.
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
     implementation 'androidx.activity:activity-compose:1.8.2'
     implementation 'androidx.compose.material:material-icons-extended'
     implementation 'io.coil-kt:coil-compose:2.6.0'
+    implementation 'io.noties.markwon:core:4.6.2'
+    implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
+    implementation 'io.noties.markwon:ext-tables:4.6.2'
+    implementation 'io.noties.markwon:ext-tasklist:4.6.2'
+    implementation 'com.atlassian.commonmark:commonmark-ext-autolink:0.13.0'
     implementation 'com.caverock:androidsvg-aar:1.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
     implementation 'com.flyfishxu:kadb-android:1.2.1'
@@ -348,11 +367,14 @@ dependencies {
     implementation 'androidx.camera:camera-camera2:1.4.2'
     implementation 'androidx.camera:camera-lifecycle:1.4.2'
     implementation 'androidx.webkit:webkit:1.12.1'
+    implementation 'androidx.palette:palette:1.0.0'
     implementation 'io.github.webrtc-sdk:android:125.6422.07'
     implementation("com.google.mediapipe:tasks-vision:${trackingPack.MEDIAPIPE_VERSION}") {
         exclude group: 'com.google.auto.value', module: 'auto-value'
     }
     implementation 'com.google.zxing:core:3.5.3'
+    implementation 'androidx.media3:media3-exoplayer:1.3.1'
+    implementation 'androidx.media3:media3-session:1.3.1'
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.16.1'

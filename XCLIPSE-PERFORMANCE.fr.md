@@ -279,3 +279,11 @@ Une migration exécutée avant la session D-Bus configure xfdesktop pour les mon
 Validation : 13 tests du helper (configuration, préservation des choix, dossier Bureau localisé, fichiers .desktop, protocole de relancement, validation des URL et graphiques PNG), plus les 4 tests du lanceur repassés. Les images totalisent moins de 100 Ko. Le mécanisme Xwayland de la .7 reste inchangé. L’affichage du nouveau fond et les raccourcis sur le S22+ nécessitent encore un essai sur l’appareil.
 
 La migration remplace également les fonds SVG standard de Xfce par le PNG fourni : le système léger ne contient pas de chargeur SVG. Un fichier SVG présent peut donc laisser le fond noir. Ce cas est couvert par un test supplémentaire. Le helper Python a été finalisé dans l’APK compilé, puis l’APK a été réaligné et signé à nouveau ; les classes Android compilées et les bibliothèques natives sont inchangées.
+
+## 0.7.1-xclipse920.15-preview — synchronisation du 20 novembre 2026
+
+Intègre la branche officielle main au commit `56986b5999588463753b6db47b4de2d357d21e30`, soit 290 commits après la stable 0.7.1. Cela inclut les correctifs Steam, pilotes, journaux, entrées et mémoire, les profils FG et effets par jeu, ainsi que les nouvelles boutiques et réglages officiels. Ce build est un aperçu de développement.
+
+Le profil Xclipse, Brave, les téléchargements, les journaux d’échec, le FG léger adaptatif, Ubuntu avec son apparence Windows et Fedora/Xfce sont conservés. Le FG léger peut maintenant être choisi par jeu. Les helpers Fedora sont adaptés aux noms DD_* et libddsession.so du runtime officiel récent ; Fedora continue d’utiliser PRoot. Les corrections de la branche personnelle `fix/ubuntu-windows-appearance` pour la copie du thème et Steam sous Ubuntu sont reprises. Le compagnon facultatif des raccourcis utilise la signature Xclipse et un identifiant distinct.
+
+Les bibliothèques natives viennent de l’aperçu officiel `main-fccd136`, vérifié par SHA-256. Les cinq commits ultérieurs n’affectent ni les bibliothèques natives, ni leurs dépendances, ni les assets du runtime. Les packs distants sont épinglés avec les empreintes de cet aperçu. Les validations courantes sont dans `release/xclipse-build-info.json` ; aucun test sur S22+ ni gain de FPS n’est revendiqué pour cette version.

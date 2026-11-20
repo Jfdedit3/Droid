@@ -1,11 +1,11 @@
 #!/bin/sh
 set -eu
-if [ -n "${BL_DEBUG_DIR:-}" ]; then
-  mkdir -p "$BL_DEBUG_DIR"
-  exec >>"$BL_DEBUG_DIR/fedora-xfce.log" 2>&1
+if [ -n "${DD_DEBUG_DIR:-}" ]; then
+  mkdir -p "$DD_DEBUG_DIR"
+  exec >>"$DD_DEBUG_DIR/fedora-xfce.log" 2>&1
 fi
 echo "== Fedora/Xfce starting $(date -u) uid=$(id -u) display=${WAYLAND_DISPLAY:-unset} runtime=${XDG_RUNTIME_DIR:-unset}"
-export BL_DESKTOP=1
+export DD_DESKTOP=1
 export XDG_CURRENT_DESKTOP=XFCE XDG_SESSION_DESKTOP=xfce DESKTOP_SESSION=xfce
 export XDG_SESSION_TYPE=x11 DISPLAY=:1 SHELL=/bin/bash
 export GDK_BACKEND=x11 QT_QPA_PLATFORM=xcb SDL_VIDEODRIVER=x11
@@ -79,10 +79,10 @@ until [ -S "$wayland_socket" ]; do
   [ "$n" -lt 150 ] || { echo "Fedora: Wayland socket missing: $wayland_socket"; ls -la "${XDG_RUNTIME_DIR:-/run/droiddeck}"; exit 70; }
   sleep 0.1
 done
-xlog=${BL_DEBUG_DIR:-/tmp}/xwayland-fedora.log
+xlog=${DD_DEBUG_DIR:-/tmp}/xwayland-fedora.log
 echo "== Starting Xwayland, stderr: $xlog"
-env LD_PRELOAD=/usr/local/lib/libblsession.so DROIDDECK_LINK_RENAME=1 XWAYLAND_NO_GLAMOR=1 \
-  Xwayland :1 -ac -nolisten tcp -noreset -geometry "${BL_WIDTH:-1280}x${BL_HEIGHT:-720}" -fullscreen -shm >"$xlog" 2>&1 &
+env LD_PRELOAD=/usr/local/lib/libddsession.so DROIDDECK_LINK_RENAME=1 XWAYLAND_NO_GLAMOR=1 \
+  Xwayland :1 -ac -nolisten tcp -noreset -geometry "${DD_WIDTH:-1280}x${DD_HEIGHT:-720}" -fullscreen -shm >"$xlog" 2>&1 &
 server=$!
 n=0
 until xdpyinfo -display :1 >/dev/null 2>&1; do

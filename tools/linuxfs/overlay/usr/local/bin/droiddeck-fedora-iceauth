@@ -1,2 +1,2 @@
 #!/bin/sh
-exec env LD_PRELOAD=/usr/local/lib/libblsession.so DROIDDECK_LINK_RENAME=1 /usr/bin/iceauth.droiddeck-real "$@"
+exec env LD_PRELOAD=/usr/local/lib/libddsession.so DROIDDECK_LINK_RENAME=1 /usr/bin/iceauth.droiddeck-real "$@"
